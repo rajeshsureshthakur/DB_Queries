@@ -62,17 +62,17 @@ INNER JOIN
             manager_id
         FROM 
             USERS
-        START WITH 
-            manager_id = :manager_id -- Replace with the manager's ID
-        CONNECT BY 
-            PRIOR user_id = manager_id
+        WHERE manager_id IS NOT NULL  -- Avoid rows with NULL manager_id
+        START WITH TO_NUMBER(manager_id) = 1  -- Ensure correct numeric comparison
+        CONNECT BY NOCYCLE PRIOR TO_NUMBER(user_id) = TO_NUMBER(manager_id)  -- Ensure consistent numeric comparison
     ) hierarchy
 ON 
-    z.qa_contact = hierarchy.user_id -- Join on qa_contact (mapped to user_soeid) and user_id
+    z.qa_contact = hierarchy.user_id  -- Assuming qa_contact is a string
 GROUP BY 
     z.qa_contact
 ORDER BY 
     z.qa_contact;
+
 
 
 
