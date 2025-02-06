@@ -76,6 +76,39 @@ ORDER BY
 
 
 
+SELECT 
+    z.qa_contact,
+    COUNT(DISTINCT z.testcase_id) AS total_testcases_assigned,
+    SUM(CASE WHEN z.automation_status = 1 THEN 1 ELSE 0 END) AS Completed,
+    SUM(CASE WHEN z.automation_status = 2 THEN 1 ELSE 0 END) AS To_be_automated,
+    SUM(CASE WHEN z.automation_status = 3 THEN 1 ELSE 0 END) AS In_progress,
+    SUM(CASE WHEN z.automation_status = 4 THEN 1 ELSE 0 END) AS Maintenance,
+    SUM(CASE WHEN z.automation_status = 5 THEN 1 ELSE 0 END) AS On_hold,
+    SUM(CASE WHEN z.automation_status = 6 THEN 1 ELSE 0 END) AS Not_applicable,
+    SUM(CASE WHEN z.automation_status = 7 THEN 1 ELSE 0 END) AS In_review
+FROM 
+    zephyrdata z
+INNER JOIN 
+    (
+        SELECT 
+            user_id,
+            manager_id
+        FROM 
+            USERS
+        START WITH 
+            manager_id = :manager_id -- Replace with the manager's ID
+        CONNECT BY NOCYCLE PRIOR user_id = manager_id -- Prevents infinite loops
+    ) hierarchy
+ON 
+    z.qa_contact = hierarchy.user_id -- Join on qa_contact (mapped to user_soeid) and user_id
+GROUP BY 
+    z.qa_contact
+ORDER BY 
+    z.qa_contact;
+
+
+
+
 
 //to get seperate status of status codes for each user
 WITH total_cases AS (
