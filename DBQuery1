@@ -17,6 +17,39 @@ INNER JOIN
             manager_id
         FROM 
             USERS
+        WHERE manager_id IS NOT NULL  -- Ensure no NULL manager_id
+        START WITH TO_NUMBER(manager_id) = 1  -- Start with a valid numeric value
+        CONNECT BY NOCYCLE PRIOR TO_NUMBER(user_id) = TO_NUMBER(manager_id)  -- Ensure both sides are numbers
+    ) hierarchy
+ON 
+    z.qa_contact = hierarchy.user_id  -- Treating qa_contact as a string
+GROUP BY 
+    z.qa_contact
+ORDER BY 
+    z.qa_contact;
+
+
+
+
+SELECT 
+    z.qa_contact,
+    COUNT(DISTINCT z.testcase_id) AS total_testcases_assigned,
+    SUM(CASE WHEN z.automation_status = 1 THEN 1 ELSE 0 END) AS Completed,
+    SUM(CASE WHEN z.automation_status = 2 THEN 1 ELSE 0 END) AS To_be_automated,
+    SUM(CASE WHEN z.automation_status = 3 THEN 1 ELSE 0 END) AS In_progress,
+    SUM(CASE WHEN z.automation_status = 4 THEN 1 ELSE 0 END) AS Maintenance,
+    SUM(CASE WHEN z.automation_status = 5 THEN 1 ELSE 0 END) AS On_hold,
+    SUM(CASE WHEN z.automation_status = 6 THEN 1 ELSE 0 END) AS Not_applicable,
+    SUM(CASE WHEN z.automation_status = 7 THEN 1 ELSE 0 END) AS In_review
+FROM 
+    zephyrdata z
+INNER JOIN 
+    (
+        SELECT 
+            user_id,
+            manager_id
+        FROM 
+            USERS
         WHERE manager_id IS NOT NULL  -- Avoid rows with NULL manager_id
         START WITH TO_NUMBER(manager_id) = 1  -- Ensure correct numeric comparison
         CONNECT BY NOCYCLE PRIOR TO_NUMBER(user_id) = TO_NUMBER(manager_id)  -- Ensure consistent numeric comparison
