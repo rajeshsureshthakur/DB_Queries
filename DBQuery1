@@ -43,29 +43,6 @@ ORDER BY
 
 // Data for all resources under a manager
 
-WITH RECURSIVE hierarchy AS (
-    -- Start with the manager whose ID is provided (replace :manager_id with the desired ID)
-    SELECT 
-        user_soeid,
-        manager_id,
-        manager_name
-    FROM 
-        USERS
-    WHERE 
-        user_soeid = :manager_id
-    
-    UNION ALL
-    
-    -- Recursively find all subordinates
-    SELECT 
-        u.user_soeid,
-        u.manager_id,
-        u.manager_name
-    FROM 
-        USERS u
-    INNER JOIN 
-        hierarchy h ON u.manager_id = h.user_soeid
-)
 SELECT 
     z.qa_contact,
     COUNT(DISTINCT z.testcase_id) AS total_testcases_assigned,
@@ -79,11 +56,23 @@ SELECT
 FROM 
     zephyrdata z
 INNER JOIN 
-    hierarchy h ON z.qa_contact = h.user_soeid
+    (
+        SELECT 
+            user_soeid
+        FROM 
+            USERS
+        START WITH 
+            user_soeid = :manager_id
+        CONNECT BY 
+            PRIOR user_soeid = manager_id
+    ) hierarchy
+ON 
+    z.qa_contact = hierarchy.user_soeid
 GROUP BY 
     z.qa_contact
 ORDER BY 
     z.qa_contact;
+
 
 
 
