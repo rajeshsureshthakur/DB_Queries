@@ -1,0 +1,64 @@
+// to get count of each status for all test cases for each users
+SELECT 
+    qa_contact,
+    COUNT(DISTINCT testcase_id) AS total_testcases_assigned,
+    SUM(CASE WHEN automation_status = 1 THEN 1 ELSE 0 END) AS Completed,
+    SUM(CASE WHEN automation_status = 2 THEN 1 ELSE 0 END) AS To_be_automated,
+    SUM(CASE WHEN automation_status = 3 THEN 1 ELSE 0 END) AS In_progress,
+    SUM(CASE WHEN automation_status = 4 THEN 1 ELSE 0 END) AS Maintenance,
+    SUM(CASE WHEN automation_status = 5 THEN 1 ELSE 0 END) AS On_hold,
+    SUM(CASE WHEN automation_status = 6 THEN 1 ELSE 0 END) AS Not_applicable,
+    SUM(CASE WHEN automation_status = 7 THEN 1 ELSE 0 END) AS In_review
+FROM 
+    zephyrdata
+GROUP BY 
+    qa_contact
+ORDER BY 
+    qa_contact;
+
+
+
+//to get seperate status of status codes for each user
+WITH total_cases AS (
+    SELECT 
+        qa_contact, 
+        COUNT(DISTINCT testcase_id) AS total_testcases_assigned
+    FROM 
+        zephyrdata
+    GROUP BY 
+        qa_contact
+),
+status_counts AS (
+    SELECT 
+        qa_contact, 
+        CASE 
+            WHEN automation_status = 1 THEN 'Completed'
+            WHEN automation_status = 2 THEN 'To be automated'
+            WHEN automation_status = 3 THEN 'In progress'
+            WHEN automation_status = 4 THEN 'Maintenance'
+            WHEN automation_status = 5 THEN 'On hold'
+            WHEN automation_status = 6 THEN 'Not applicable'
+            WHEN automation_status = 7 THEN 'In review'
+            ELSE 'Unknown Status'
+        END AS status_meaning,
+        COUNT(*) AS status_count
+    FROM 
+        zephyrdata
+    GROUP BY 
+        qa_contact, 
+        automation_status
+)
+SELECT 
+    tc.qa_contact,
+    tc.total_testcases_assigned,
+    sc.status_meaning,
+    sc.status_count
+FROM 
+    total_cases tc
+JOIN 
+    status_counts sc
+ON 
+    tc.qa_contact = sc.qa_contact
+ORDER BY 
+    tc.qa_contact, 
+    sc.status_meaning;
