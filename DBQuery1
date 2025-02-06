@@ -1,3 +1,12 @@
+SELECT qa_contact
+FROM zephyrdata
+WHERE qa_contact IN (
+    SELECT TO_CHAR(user_id)
+    FROM USERS
+    WHERE manager_id = 1  -- or whatever manager_id you are using
+);
+
+
 SELECT 
     TO_CHAR(user_id) AS user_id,
     TO_NUMBER(manager_id) AS manager_id
