@@ -1,3 +1,14 @@
+SELECT qa_contact
+FROM zephyrdata
+WHERE qa_contact IN (
+    SELECT user_id
+    FROM USERS
+    WHERE manager_id = 1  -- Or any manager_id you're checking
+)
+AND (LENGTH(qa_contact) != LENGTH(TRIM(qa_contact))  -- Check for leading or trailing spaces
+     OR qa_contact != TRIM(qa_contact));  -- Compare original value with trimmed value
+
+
 SELECT qa_contact, TO_CHAR(user_id) AS user_id
 FROM zephyrdata z
 INNER JOIN USERS u
