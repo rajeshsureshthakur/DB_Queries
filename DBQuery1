@@ -1,3 +1,11 @@
+SELECT qa_contact, TO_CHAR(user_id) AS user_id
+FROM zephyrdata z
+INNER JOIN USERS u
+ON TO_CHAR(z.qa_contact) = TO_CHAR(u.user_id)  -- Explicitly cast both to string for comparison
+WHERE u.manager_id = 1;
+
+
+
 SELECT qa_contact
 FROM zephyrdata
 WHERE qa_contact IN (
