@@ -17,6 +17,32 @@ ORDER BY
     qa_contact;
 
 
+// Data only for specific manager
+
+SELECT 
+    z.qa_contact,
+    COUNT(DISTINCT z.testcase_id) AS total_testcases_assigned,
+    SUM(CASE WHEN z.automation_status = 1 THEN 1 ELSE 0 END) AS Completed,
+    SUM(CASE WHEN z.automation_status = 2 THEN 1 ELSE 0 END) AS To_be_automated,
+    SUM(CASE WHEN z.automation_status = 3 THEN 1 ELSE 0 END) AS In_progress,
+    SUM(CASE WHEN z.automation_status = 4 THEN 1 ELSE 0 END) AS Maintenance,
+    SUM(CASE WHEN z.automation_status = 5 THEN 1 ELSE 0 END) AS On_hold,
+    SUM(CASE WHEN z.automation_status = 6 THEN 1 ELSE 0 END) AS Not_applicable,
+    SUM(CASE WHEN z.automation_status = 7 THEN 1 ELSE 0 END) AS In_review
+FROM 
+    zephyrdata z
+INNER JOIN 
+    USERS u ON z.qa_contact = u.user_soeid
+WHERE 
+    u.manager_name = 'Rakesh'
+GROUP BY 
+    z.qa_contact
+ORDER BY 
+    z.qa_contact;
+
+
+
+
 
 //to get seperate status of status codes for each user
 WITH total_cases AS (
