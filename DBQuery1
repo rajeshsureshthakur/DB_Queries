@@ -1,4 +1,13 @@
 SELECT 
+    user_id, manager_id
+FROM USERS
+WHERE TRIM(manager_id) IS NOT NULL
+  AND TRIM(user_id) IS NOT NULL
+  AND NOT REGEXP_LIKE(manager_id, '^\d+$') 
+  AND NOT REGEXP_LIKE(user_id, '^\d+$');
+
+
+SELECT 
     z.qa_contact,
     COUNT(DISTINCT z.testcase_id) AS total_testcases_assigned,
     SUM(CASE WHEN z.automation_status = 1 THEN 1 ELSE 0 END) AS Completed,
