@@ -58,16 +58,17 @@ FROM
 INNER JOIN 
     (
         SELECT 
-            user_soeid
+            user_id,
+            manager_id
         FROM 
             USERS
         START WITH 
-            user_soeid = :manager_id
+            manager_id = :manager_id -- Replace with the manager's ID
         CONNECT BY 
-            PRIOR user_soeid = manager_id
+            PRIOR user_id = manager_id
     ) hierarchy
 ON 
-    z.qa_contact = hierarchy.user_soeid
+    z.qa_contact = hierarchy.user_id -- Join on qa_contact (mapped to user_soeid) and user_id
 GROUP BY 
     z.qa_contact
 ORDER BY 
