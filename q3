@@ -1,0 +1,42 @@
+WITH status_counts AS (
+    -- Get the count of test cases by status for each user
+    SELECT 
+        u.user_id,
+        u.user_name,
+        u.manager_id,
+        z.automation_status,
+        COUNT(*) as status_count
+    FROM users u
+    JOIN zephyrdata z ON u.user_name = z.qa_contact
+    GROUP BY 
+        u.user_id,
+        u.user_name,
+        u.manager_id,
+        z.automation_status
+)
+
+SELECT 
+    LPAD(' ', 2*(LEVEL-1)) || e.user_name as employee_hierarchy,
+    SUM(CASE WHEN s.automation_status = 1 THEN s.status_count ELSE 0 END) as complete_count,
+    SUM(CASE WHEN s.automation_status = 2 THEN s.status_count ELSE 0 END) as failed_count,
+    SUM(CASE WHEN s.automation_status = 3 THEN s.status_count ELSE 0 END) as status_3_count,
+    SUM(CASE WHEN s.automation_status = 4 THEN s.status_count ELSE 0 END) as status_4_count,
+    SUM(CASE WHEN s.automation_status = 5 THEN s.status_count ELSE 0 END) as status_5_count,
+    SUM(CASE WHEN s.automation_status = 6 THEN s.status_count ELSE 0 END) as status_6_count,
+    SUM(CASE WHEN s.automation_status = 7 THEN s.status_count ELSE 0 END) as status_7_count
+FROM 
+    users e
+    LEFT JOIN status_counts s ON e.user_id = s.user_id
+WHERE e.user_id IN (
+    SELECT user_id
+    FROM users
+    START WITH user_id = :manager_id
+    CONNECT BY PRIOR user_id = manager_id
+)
+GROUP BY 
+    e.user_id,
+    e.user_name,
+    LEVEL
+START WITH e.user_id = :manager_id
+CONNECT BY PRIOR e.user_id = e.manager_id
+ORDER BY employee_hierarchy;
