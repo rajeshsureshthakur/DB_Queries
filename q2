@@ -1,0 +1,46 @@
+WITH RECURSIVE employee_hierarchy AS (
+    -- Get all employees with their direct managers
+    SELECT 
+        user_id,
+        user_name,
+        manager_id
+    FROM users
+),
+
+status_counts AS (
+    -- Get the count of test cases by status for each user
+    SELECT 
+        u.user_id,
+        u.user_name,
+        u.manager_id,
+        z.automation_status,
+        COUNT(*) as status_count
+    FROM users u
+    JOIN zephyrdata z ON u.user_name = z.qa_contact
+    GROUP BY 
+        u.user_id,
+        u.user_name,
+        u.manager_id,
+        z.automation_status
+)
+
+SELECT 
+    m.user_name as manager_name,
+    e.user_name as employee_name,
+    SUM(CASE WHEN s.automation_status = 1 THEN s.status_count ELSE 0 END) as complete_count,
+    SUM(CASE WHEN s.automation_status = 2 THEN s.status_count ELSE 0 END) as failed_count,
+    SUM(CASE WHEN s.automation_status = 3 THEN s.status_count ELSE 0 END) as status_3_count,
+    SUM(CASE WHEN s.automation_status = 4 THEN s.status_count ELSE 0 END) as status_4_count,
+    SUM(CASE WHEN s.automation_status = 5 THEN s.status_count ELSE 0 END) as status_5_count,
+    SUM(CASE WHEN s.automation_status = 6 THEN s.status_count ELSE 0 END) as status_6_count,
+    SUM(CASE WHEN s.automation_status = 7 THEN s.status_count ELSE 0 END) as status_7_count
+FROM 
+    employee_hierarchy e
+    JOIN users m ON e.manager_id = m.user_id
+    LEFT JOIN status_counts s ON e.user_id = s.user_id
+GROUP BY 
+    m.user_name,
+    e.user_name
+ORDER BY 
+    m.user_name,
+    e.user_name;
